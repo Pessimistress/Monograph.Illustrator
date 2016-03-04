@@ -1,0 +1,630 @@
+#include "json.jsxinc"
+
+// Array functions
+
+Array.prototype.unique = function() {
+	var o = {},
+		i, l = this.length,
+		r = [];
+	for (i = 0; i < l; i += 1) {
+		var k = this[i];
+		if (!o[k]) {
+			r.push(k)
+			o[k] = k;
+		}
+	}
+	return r;
+};
+
+Array.prototype.indexOf = function(d) {
+	for (var i = 0; i < this.length; i++) {
+		if (this[i] == d) return i;
+	}
+	return -1;
+}
+
+// Shared utilities
+
+var _ = {};
+
+_.isEmpty = function(obj) {
+	for (var i in obj) return false;
+	return true;
+}
+
+// Illustrator color object to css color string
+_.toColor = function(color, opacity) {
+	var r, g, b;
+	var c;
+	if (color.typename == "GrayColor") {
+		var grayPct = color.gray;
+		var rgbPct = (100 - grayPct) / 100 * 255;
+		r = rgbPct;
+		g = rgbPct;
+		b = rgbPct;
+	} else if (color.typename == "RGBColor") {
+		r = color.red;
+		g = color.green;
+		b = color.blue;
+	} else if (color.typename == "GradientColor") {
+
+		if (color.gradient.type == "GradientType.LINEAR") {
+			c = "linear-gradient(";
+			c += (90 - color.angle).toFixed(0) + "deg,";
+		} else {
+			c = "radial-gradient(circle,";
+		}
+		// color.length;
+		// color.origin;
+		var stops = color.gradient.gradientStops;
+		for (var i = 0; i < stops.length; i++) {
+			var stop = stops[i];
+			if (i > 0) c += ", ";
+			c += _.toColor(stop.color, stop.opacity);
+			c += " " + stop.rampPoint.toFixed(0) + "%";
+		}
+		c += ")";
+
+		return c;
+	} else {
+		r = 0;
+		g = 0;
+		b = 0;
+	}
+
+	if (opacity === undefined) {
+		c = "rgb(" + r.toFixed(0) + "," + g.toFixed(0) + "," + b.toFixed(0) + ")";
+	} else {
+		c = "rgba(" + r.toFixed(0) + "," + g.toFixed(0) + "," + b.toFixed(0) + "," + (opacity / 100 * 255).toFixed(0) + ")";
+	}
+	return c;
+};
+
+// get an unique short id
+_.idCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-";
+_.idIndex = 0;
+_.uniqueId = function() {
+
+	var n = _.idIndex++,
+		u = _.idCharacters.length,
+		u0 = 52,
+		l = 1;
+	var n0;
+	var result = "";
+
+	while (n >= (n0 = u0 * Math.pow(u, l - 1))) {
+		n -= n0;
+		l++;
+	}
+
+	for (var i = l; i--;) {
+		var p = Math.floor(n / u),
+			q = n - p * u;
+		result = _.idCharacters[q] + result;
+		n = p;
+	}
+	return result;
+}
+
+_.htmlEscapeCharacters = {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"};
+_.htmlSafeCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_!#$%()*+,-.:;=?@[]/\\`^_";
+
+// HTML safe string
+_.escapeHTML = function(text) {
+	var utext = "";
+	var space = true;
+
+	for (var i = 0; i < text.length; i++) {
+		var c = text[i];
+		if(c == " ") {
+			utext += space? "&nbsp;":c;
+			space = true;
+		}
+		else if (_.htmlEscapeCharacters[c]) {
+			utext += _.htmlEscapeCharacters[c];
+			space = false;
+		} else {
+			utext += (_.htmlSafeCharacters.indexOf(c) < 0)? "&#x" + text.charCodeAt(i).toString(16) + ";" : c;
+			space = false;
+		}
+	}
+	return utext;
+};
+
+// export current document to image
+_.exportToImage = function(dest, settings) {
+	var exportOptions;
+
+	if (settings.image_format == "PNG8") {
+		exportOptions = new ExportOptionsPNG8();
+		var pngType = ExportType.PNG8;
+		exportOptions.colorCount = settings.png_number_of_colors;
+	} else if (settings.image_format == "PNG24") {
+		exportOptions = new ExportOptionsPNG24();
+		var pngType = ExportType.PNG24;
+	}
+
+	file = new File(dest);
+	exportOptions.transparency = settings.png_transparency;
+	exportOptions.artBoardClipping = false;
+	exportOptions.antiAliasing = false;
+	exportOptions.horizontalScale = settings.image_scale;
+	exportOptions.verticalScale = settings.image_scale;
+	app.activeDocument.exportFile(file, pngType, exportOptions);
+};
+
+// save/load last export settings
+_.PrototypeSettings = function(doc) {
+	// stored as JSON string in the notes of a hidden object
+	var layer_name = "<PrototypeSettings>",
+		tf_name = "<Export>";
+	var layer, tf;
+
+	function init(create_if_not_exist) {
+		try {
+			layer = doc.layers.getByName(layer_name);
+		} catch (err) {
+			if(!create_if_not_exist) return false;
+			// create the storage layer if it doesn't exist
+			layer = doc.layers.add();
+			layer.name = layer_name;
+		}
+		try {
+			tf = layer.textFrames.getByName(tf_name);
+		} catch (err) {
+			if(!create_if_not_exist) return false;
+			// create the storage object if it doesn't exist
+			layer.locked = false;
+			layer.visible = true;
+			tf = layer.textFrames.add();
+			tf.name = tf_name;
+			tf.note = "{}";
+			layer.visible = false;
+		}
+		return true;
+	}
+
+	return {
+		read: function() {
+			if(init(false)) {
+				try {
+					return JSON.parse(tf.note);
+				} catch (err) { }
+			}
+			return {};
+		},
+		write: function(obj) {
+			if(init(true)) {
+				tf.note = JSON.stringify(obj);
+			}
+		}
+	};
+};
+
+//========
+// file operations
+//========
+
+_.writeToFile = function(content, filePath) {
+	var file = new File(filePath);
+	if (file.open("w", "TEXT", "TEXT")) {
+		file.lineFeed = "Unix";
+		file.encoding = "UTF-8";
+		file.writeln(content);
+		file.close();
+		return true;
+	}
+	else return file.error;
+};
+
+_.readFromFile = function(filePath) {
+	var file = new File(filePath);
+	var outputText = "";
+	if (file.exists) {
+		if (file.open("r")) {
+			while (!file.eof) {
+				outputText += file.readln() + "\r";
+			};
+			file.close();
+			return outputText;
+		}
+	}
+	return null;
+};
+
+_.copyFile = function(sourcePath, targetPath) {
+	var file = new File(sourcePath);
+	if (file.copy(targetPath)) {
+		return true;
+	} else return file.error;
+};
+
+_.createFolder = function(folderPath) {
+	var outputFolder = new Folder(folderPath);
+	if (!outputFolder.exists) {
+		if (!outputFolder.create()) {
+			return outputFolder.error;
+		}
+	}
+	return true;
+};
+
+//========
+// end file operations
+//========
+
+// find the relative path from absolute path A to absolute path B
+_.relativePath = function(fromPath, toPath) {
+	fromPath = fromPath.replace(/\\/g, "/");
+	toPath = toPath.replace(/\\/g, "/");
+
+	var separator = "/";
+	var from_tokens = fromPath.split(separator);
+	from_tokens.pop();
+	var to_tokens = toPath.split(separator);
+
+	while (from_tokens.length) {
+		if (from_tokens[0] == to_tokens[0]) {
+			from_tokens.shift();
+			to_tokens.shift();
+		} else break;
+	}
+
+	var i = from_tokens.length;
+	while (i > 0) {
+		to_tokens.splice(0, 0, "..");
+		i--;
+	}
+	return to_tokens.join("/");
+}
+
+// openDialog: pops an dialog and asks for user input.
+// output: object to save the input to when user presses "OK"
+_.openDialog = function(title, data, output) {
+
+	var me = this;
+	var width = 320,
+		textWidth = 100,
+		controlWidth = 200;
+	var inputs = {};
+
+	var win = new Window("dialog", title, undefined, {
+		closeButton: true
+	});
+	win.orientation = "column";
+
+	addControls(win, data);
+
+	var buttons = win.add("group");
+	buttons.alignment = ["right", "fill"];
+	if (data.buttons) {
+		for (var i = 0; i < data.buttons.length; i++) {
+			var d = data.buttons[i];
+			d.type = "button";
+			addControls(buttons, d);
+		}
+	}
+
+	addControls(buttons, {
+		text: "OK",
+		type: "button",
+		properties: "closebutton: true",
+		onclick: output ? function() {
+			for (var i in inputs) {
+				var v = getValue(inputs[i]);
+				if (v != undefined) output[i] = v;
+			}
+		} : null
+	})
+
+	checkDeps(true);
+
+	var api = {
+		window: win,
+		get: function(id) {
+			return inputs[id];
+		},
+		add: function(container, d) {
+			addControls(container, d);
+			checkDeps(true);
+		},
+		remove: removeControls
+	};
+
+	if (data.onload) {
+		data.onload(api);
+	}
+
+	return win.show();
+
+	function checkDeps(all) {
+		for (var i in inputs) {
+			var d = inputs[i];
+			if (d.deps) {
+				var needs_update = false;
+				for (var j in d.deps) {
+					if(all === true || inputs[j].control == this) {
+						needs_update = true;
+					}
+				}
+				if(!needs_update) continue;
+
+				var enabled = true;
+				for (var j in d.deps) {
+					var v = getValue(inputs[j]);
+					enabled = enabled && !!d.deps[j](v);
+				}
+				d.container.enabled = enabled;
+			}
+		}
+		win.layout.layout(true);
+	}
+
+	function getValue(d) {
+		var ctrl = d.control;
+		if (!ctrl.enabled) return;
+
+		switch (d.type) {
+			case "files":
+				return ctrl.value;
+			case "text":
+				return ctrl.text;
+			case "number":
+				return parseFloat(ctrl.text);
+			case "dropdown":
+				if (ctrl.selection) {
+					return ctrl.selection.text;
+				} else return null;
+			case "checkbox":
+				return ctrl.value;
+			case "color":
+				return ctrl.text;
+		}
+	}
+
+	function removeControls(id) {
+		var d = inputs[id];
+		if (d) {
+			deleteControl(d);
+			var obj = d.container;
+			obj.parent.remove(obj);
+			win.layout.layout(true);
+		}
+
+		function deleteControl(d) {
+			if (d.id) {
+				delete inputs[d.id];
+			}
+			if (d.children) {
+				for (var i = 0; i < d.children.length; i++) {
+					deleteControl(d.children[i]);
+				}
+			}
+		}
+	}
+
+	function addControls(container, d) {
+
+		if (typeof(d) == "string") {
+			var st = container.add("statictext", undefined, d.toString(), {
+				multiline: true,
+				scrolling: true
+			});
+			st.preferredSize.width = width;
+			st.maximumSize.height = 32;
+			st.characters = 0;
+			return st;
+
+		} else if (d.children) {
+			var g;
+
+			switch (d.type) {
+				case "tabpanel":
+					g = container.add("tabbedpanel");
+					break;
+				case "tab":
+					g = container.add("tab", undefined, d.name);
+					break;
+				default:
+					if (d.name) {
+						g = container.add("panel", undefined, d.name, {
+							borderStyle: 'etched'
+						});
+					} else {
+						g = container.add("group");
+					}
+			}
+
+			switch (d.flow) {
+				case "horizontal":
+					g.orientation = "row";
+					break;
+				default:
+					g.orientation = "column";
+			}
+
+			g.alignment = [d.horizontalAlign || "fill", d.verticalAlign || "fill"];
+			g.spacing = d.spacing === undefined ? 10 : d.spacing;
+			if (d.width) g.preferredSize.width = d.width;
+
+			for (var j = 0; j < d.children.length; j++) {
+				addControls(g, d.children[j]);
+			}
+
+			d.container = g;
+			d.control = g;
+			if (d.id) inputs[d.id] = d;
+
+			return g;
+
+		} else {
+			if (d.name != undefined) {
+				var row = container.add("group");
+				row.alignment = ["left", "top"];
+
+				var st = row.add("statictext", [0, 0, textWidth, 24], d.name);
+				st.alignment = ["left", "top"];
+				st.justify = "right";
+
+				container = row;
+			}
+			var w = d.width || controlWidth;
+			var input;
+			switch (d.type) {
+				case "button":
+					input = container.add("button", [0, 0, d.width || 120, 24], d.text, d.properties);
+					input.alignment = ["left", "top"];
+					input.onClick = function() {
+						if (d.onclick) {
+							if (d.onclick.call(input, api)) return;
+						}
+						win.close(1);
+					}
+					break;
+				case "statictext":
+					input = container.add("statictext", [0, 0, w, 24], d.value);
+					break;
+				case "text":
+				case "number":
+					input = container.add("edittext", [0, 0, w, 24], d.value);
+					input.onChange = checkDeps;
+					break;
+				case "dropdown":
+					input = container.add("dropdownlist", [0, 0, w, 24], d.options);
+					if (d.value && d.options) {
+						var index = d.options.indexOf(d.value);
+						if (index >= 0) input.selection = index;
+					}
+					input.onChange = checkDeps;
+					break;
+				case "checkbox":
+					input = container.add("checkbox", [0, 0, w, 18], "");
+					input.alignment = ["left", 'bottom'];
+					input.value = d.value;
+					input.onClick = checkDeps;
+					break;
+				case "color":
+					input = container.add("button", [0, 0, w, 24], d.value);
+					input.justify = "left";
+					input.onClick = function() {
+						var c = $.colorPicker();
+						if(c >= 0) {
+							var cstr = c.toString(16);
+							while(cstr.length < 6) cstr = "0" + cstr;
+							input.text = "#" + cstr;
+							checkDeps();
+						}
+					}
+					break;
+			}
+			d.container = row ? row : input;
+			d.control = input;
+			if (d.id) inputs[d.id] = d;
+
+			return input;
+		}
+	}
+};
+
+//========
+// Classes
+//========
+
+// tree strucure
+var TreeNode = (function() {
+
+	var node = function() {
+		this.parent = null;
+	}
+
+	node.prototype.addChild = function(node, sorter) {
+		node.parent = this;
+		if (!this.children) this.children = [];
+		if (sorter == undefined) {
+			this.children.push(node);
+		} else {
+			var i;
+			var v = sorter(node);
+			for (i = 0; i < this.children.length; i++) {
+				if (v >= sorter(this.children[i])) break;
+			}
+			this.children.splice(i, 0, node);
+		}
+	}
+
+	node.prototype.getNodes = function() {
+		var result = [this];
+
+		for (var j = 0; j < result.length; j++) {
+			var r = result[j];
+			if (r.children) {
+				for (var i = 0; i < r.children.length; i++) {
+					result.push(r.children[i]);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	node.prototype.isDescendantOf = function(that_node) {
+		var n = this;
+		while (n != null) {
+			if (n == that_node) return true;
+			n = n.parent;
+		}
+		return false;
+	}
+
+	return node;
+
+})();
+
+// generic helper that collects warnings/errors along the way and pops up a dialog in the end
+var MessageCenter = function() {
+	var me = this;
+	var info = [];
+	var warnings = [];
+	var errors = [];
+
+	var alertText = "";
+	var alertHed = "Success!";
+
+	me.hasError = false;
+
+	me.info = function(text) {
+		info.push(text);
+	}
+	me.warning = function(text) {
+		warnings.push(text);
+	}
+	me.error = function(text) {
+		errors.push(text);
+		me.hasError = true;
+	}
+
+	me.show = function(header_text, footer_text, buttons) {
+		var data = {
+			children: [
+				header_text,
+			]
+		}
+		if (errors.length) data.children.push({
+			name: "Error",
+			children: errors.unique()
+		});
+		if (warnings.length) data.children.push({
+			name: "Warning",
+			children: warnings.unique()
+		});
+		if (info.length) data.children.push({
+			name: "Info",
+			children: info.unique()
+		});
+		data.children.push(footer_text);
+		data.buttons = buttons;
+
+		return _.openDialog("Message", data);
+	}
+
+};

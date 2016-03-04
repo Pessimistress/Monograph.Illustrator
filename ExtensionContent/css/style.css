@@ -1,0 +1,89 @@
+@font-face {
+	font-family: 'Icomatic';
+	src: url('icomatic.ttf') format("truetype");
+}
+.icomatic {
+    font-family: 'Icomatic','sans-serif';
+    line-height: 21px;
+    font-size: 7pt;
+    text-rendering: optimizeLegibility;
+    -webkit-font-feature-settings: "liga", "dlig";
+    -ms-font-feature-settings: "liga", "dlig";
+    -moz-font-feature-settings: "liga", "dlig";
+    -o-font-feature-settings: "liga", "dlig";
+    font-feature-settings: "liga", "dlig";
+    -webkit-font-smoothing: antialiased;
+}
+body { 
+	margin: 10px; 
+	font-size: 9pt;
+}
+#scripts button {
+	min-width: 32%
+}
+header { position: relative; cursor: default;}
+header h5 {
+	font-size: 8pt;
+	font-weight: normal;
+	display: inline-block;
+	margin: 12px 0 6px;
+	line-height: 1.5;
+	padding-right: 8px;
+}
+header:before {
+    content: '';
+    width: 100%;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 20px;
+    z-index: -1;
+}
+#extensions {
+	display: table;
+	width: 100%;
+}
+.file {
+	display: table-row;
+}
+.file > * {
+	display: table-cell;
+}
+.file > button {
+	width: 30px;
+}
+.file > span {
+	cursor: default;	
+	width: 99%;
+	margin-left: 8px;
+	word-break: break-all;
+	vertical-align: middle;
+}
+.file:hover > span {
+	opacity: 0.5;
+}
+.file.invalid {
+	color: red !important;
+}
+
+body[data-theme="dark"] {
+	color: #c6c8c8;
+}
+body[data-theme="dark"] header h5 {
+	color: #868888;	
+	text-shadow: 0px -1px 0px rgba(0,0,0,.5);
+}
+body[data-theme="dark"] header:before {
+    border-bottom: 1px solid #58595A;
+}
+
+body[data-theme="light"] {
+	color: #464848;
+}
+body[data-theme="light"] header h5 {
+	color: #868888;	
+	text-shadow: 0px 1px 0px rgba(255,255,255,.5);
+}
+body[data-theme="light"] header:before {
+    border-bottom: 1px solid #58595A;
+}

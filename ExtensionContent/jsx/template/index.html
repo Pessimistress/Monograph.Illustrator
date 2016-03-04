@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta name="author" content="{{license_info}}">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<title>{{file_name}}</title>
+	{% block prod %}
+	<link rel="stylesheet" type="text/css" href="{{prod_path}}monograph-{{script_version}}.css">
+	{% endblock %}
+	{% block dev %}
+	<link rel="stylesheet" type="text/css" href="{{dev_path}}style.css">
+	{% endblock %}
+	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js" ></script>
+	</head>
+	<body >
+		{{html_body}}
+	{% block prod %}
+		<script type="text/javascript" src="data.js"></script>
+		<script type="text/javascript" src="{{prod_path}}monograph-{{script_version}}.min.js" ></script>
+	{% endblock %}
+	{% block dev %}
+		<script type="text/javascript" src="data.js"></script>
+		<script type="text/javascript" src="{{dev_path}}main.js" ></script>
+		<script type="text/javascript" src="{{dev_path}}actions.js" ></script>
+		<script type="text/javascript" src="{{dev_path}}inputs.js" ></script>
+	{% endblock %}
+		{{custom_scripts}}
+		<script type="text/javascript"> proto.init(); </script>
+	</body>
+</html>
