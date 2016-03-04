@@ -7,7 +7,7 @@ This is a cross-platform Adobe Illustrator add-on. It helps setting up and expor
 
 ### Install
 
-- Grab the latest [build](https://github.com/Pessimistress/Monograph.Illustrator/blob/master/Monograph.zxp).
+- Right click and save [the latest build](https://github.com/Pessimistress/Monograph.Illustrator/blob/master/Monograph.zxp).
 - Get [ZXPInstaller](http://zxpinstaller.com/) for your OS.
 - Open ZXPInstaller and drag in **Monograph.zxp**.
 - Restart Illustrator (first time), or open the fly out menu on the Monograph panel in Illustrator, and select **Refresh**.
