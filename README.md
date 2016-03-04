@@ -1,4 +1,4 @@
-# About Monograph for Adobe Illustrator
+### About Monograph for Adobe Illustrator
 
 Monograph is a quick-n-dirty prototyping tool for designers at Microsoft.
 
@@ -10,7 +10,12 @@ This is a cross-platform Adobe Illustrator add-on. It helps setting up and expor
 - Right click and save [the latest build](https://github.com/Pessimistress/Monograph.Illustrator/blob/master/Monograph.zxp).
 - Get [ZXPInstaller](http://zxpinstaller.com/) for your OS.
 - Open ZXPInstaller and drag in **Monograph.zxp**.
-- Restart Illustrator (first time), or open the fly out menu on the Monograph panel in Illustrator, and select **Refresh**.
+- Restart Illustrator
+- Open Window > Extensions > Monograph
+
+##### Update
+- Drag the latest **Monograph.zxp** into ZXPInstaller
+- Open the fly out menu on the Monograph panel in Illustrator, and select **Refresh**.
 
 
 ### License
