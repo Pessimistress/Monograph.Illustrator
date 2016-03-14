@@ -325,7 +325,7 @@
 
             },
             children: [{
-                name: "Object name",
+                name: "Object id",
                 width: 220,
                 type: "text",
                 value: tokens[0],
