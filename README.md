@@ -20,9 +20,9 @@ This is a cross-platform Adobe Illustrator add-on. It helps setting up and expor
 ### Get Started
 
 - Watch the [tutorial video](http://monograph.github.io)  
-- Try the [sample Illustrator files](wiki/Samples)  
-- Check out the documentations in [Monograph for Adobe Illustrator Wiki](wiki/)  
-- Power up your prototype with [extensions](wiki/Monograph-Panel#extensions)  
+- Try the [sample Illustrator files](../../wiki/Samples)  
+- Check out the documentations in [Monograph for Adobe Illustrator Wiki](../../wiki/)  
+- Power up your prototype with [extensions](../../wiki/Monograph-Panel#extensions)  
 
 ### License
 
