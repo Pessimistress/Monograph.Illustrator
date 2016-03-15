@@ -133,24 +133,29 @@ _.escapeHTML = function(text) {
 
 // export current document to image
 _.exportToImage = function(dest, settings) {
-	var exportOptions;
+	var exportOptions,
+		type;
 
 	if (settings.image_format == "PNG8") {
 		exportOptions = new ExportOptionsPNG8();
-		var pngType = ExportType.PNG8;
+		type = ExportType.PNG8;
 		exportOptions.colorCount = settings.png_number_of_colors;
 	} else if (settings.image_format == "PNG24") {
 		exportOptions = new ExportOptionsPNG24();
-		var pngType = ExportType.PNG24;
+		type = ExportType.PNG24;
+	} else if (settings.image_format == "JPEG") {
+		exportOptions = new ExportOptionsJPEG();
+		type = ExportType.JPEG;
+		exportOptions.qualitySetting = 90;
 	}
 
 	file = new File(dest);
 	exportOptions.transparency = settings.png_transparency;
 	exportOptions.artBoardClipping = false;
-	exportOptions.antiAliasing = false;
+	exportOptions.antiAliasing = true;
 	exportOptions.horizontalScale = settings.image_scale;
 	exportOptions.verticalScale = settings.image_scale;
-	app.activeDocument.exportFile(file, pngType, exportOptions);
+	app.activeDocument.exportFile(file, type, exportOptions);
 };
 
 // save/load last export settings

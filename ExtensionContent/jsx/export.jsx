@@ -76,7 +76,7 @@
 					}, {
 						name: "Format",
 						type: "dropdown",
-						options: ["PNG24", "PNG8"],
+						options: ["PNG24", "PNG8", "JPEG"],
 						value: getSettingValue("image_format", docSettings),
 						id: "image_format",
 						deps: {
@@ -92,6 +92,9 @@
 						deps: {
 							"export_image": function(v) {
 								return v
+							},
+							"image_format": function(v) {
+								return v != "JPEG"
 							}
 						}
 					}, {
@@ -182,6 +185,7 @@
 			tagParameterPattern = /^:([\w_\-\.]+)(\((.*)\))?$/,
 			badNamePattern = /[" @\/\.]/,
 			badIdPattern = /[^A-Za-z0-9\-]/g;
+		var imageExtension = exportSettings.image_format == "JPEG"? ".jpg" : ".png";
 
 		// check if an item or layer is hidden in Illustrator
 		var isHidden = function(obj, value) {
@@ -687,13 +691,13 @@
 						} else if (thisNode.type == "PlacedItem" || thisNode.type == "RasterItem" || thisNode.type == "SymbolItem") {
 
 							if (thisNode.type == "SymbolItem") {
-								thisNode.imgSrc = idSafe(thisItem.symbol.name) + ".png";
+								thisNode.imgSrc = idSafe(thisItem.symbol.name) + imageExtension;
 							} else {
 								try {
 									thisNode.imgSrc = thisItem.file.name;
 								} catch (err) {
 									// embedded image may not have a file associated with it
-									thisNode.imgSrc = thisNode.path + ".png";
+									thisNode.imgSrc = thisNode.path + imageExtension;
 								}
 							}
 							addRasterImage(thisNode);
