@@ -470,7 +470,7 @@
 
 			var me = this;
 
-			this.artboards = {};
+			this.artboards = [];
 			this.states = [];
 			this.embeddedFiles = {};
 			this.styles = new StyleManager();
@@ -500,7 +500,7 @@
 
 					doc.artboards.setActiveArtboardIndex(abNumber);
 					var activeArtboard = doc.artboards[abNumber];
-					var artboardName = activeArtboard.name.match(/^\S+/i)[0] + " " + abNumber;
+					var sceneName = activeArtboard.name.match(/^\S*/i)[0];
 					var activeArtboardRect = activeArtboard.artboardRect;
 					var abL = activeArtboardRect[0],
 						abT = -activeArtboardRect[1],
@@ -544,7 +544,7 @@
 						var thisItem = thisNode.instance;
 
 						var keyframe = {};
-						var key = artboardName;
+						var key = abNumber;
 						if (thisNode.states) {
 							key += ":" + thisNode.states.join(":");
 						}
@@ -718,7 +718,8 @@
 						}
 					};
 
-					me.artboards[artboardName] = {
+					me.artboards[abNumber] = {
+						scene: sceneName,
 						width: abW,
 						height: abH
 					};
