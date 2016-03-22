@@ -971,7 +971,7 @@
 						obj.@["data-clip-path"] = "true";
 					}
 					if (node.name && node.name.length > 0) {
-						if (badNamePattern.test(node.name)) message.warning("Object name " + node.name + " contains illegal characters: @ (space) . / \"");
+						if (badNamePattern.test(node.name)) message.warning("Object name contains illegal characters: @ (space) . / \"");
 						obj.@["data-name"] = node.name;
 					}
 
