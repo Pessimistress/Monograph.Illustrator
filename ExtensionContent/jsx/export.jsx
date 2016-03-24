@@ -703,10 +703,15 @@
 							addRasterImage(thisNode);
 
 							keyframe.opacity = thisItem.opacity / 100;
-							keyframe.left = keyframe["svg-x"] = (bounds[0] - parentL) + "px";
-							keyframe.top = keyframe["svg-y"] = (bounds[1] - parentT) + "px";
-							keyframe.width = keyframe["svg-width"] = bounds[2] + "px";
-							keyframe.height = keyframe["svg-height"] = bounds[3] + "px";
+							keyframe["svg-x"] = (bounds[0] - parentL);
+							keyframe["svg-y"] = (bounds[1] - parentT);
+							keyframe["svg-width"] = bounds[2];
+							keyframe["svg-height"] = bounds[3];
+
+							keyframe.left = (bounds[0] - parentL) + "px";
+							keyframe.top = (bounds[1] - parentT) + "px";
+							keyframe.width = bounds[2] + "px";
+							keyframe.height = bounds[3] + "px";
 
 						} else if (thisNode.type == "EmbeddedProto") {
 
