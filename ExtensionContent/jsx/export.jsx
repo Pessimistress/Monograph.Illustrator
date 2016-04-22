@@ -552,6 +552,20 @@
 						thisNode.keyframes[key] = keyframe;
 
 						if (thisItem.visibleBounds) {
+							
+							if(thisNode.rotation != null) {
+								keyframe.transform = "rotate(" + (-thisNode.rotation) +"deg)";
+							}
+							if(thisNode.rotation) {
+								var dx = (thisItem.visibleBounds[0] + thisItem.visibleBounds[2])/2,
+									dy = (thisItem.visibleBounds[1] + thisItem.visibleBounds[3])/2;
+								thisItem = thisItem.duplicate(thisItem.layer, ElementPlacement.INSIDE);
+								thisItem.rotate(-thisNode.rotation);
+								dx -= (thisItem.visibleBounds[0] + thisItem.visibleBounds[2])/2,
+								dy -= (thisItem.visibleBounds[1] + thisItem.visibleBounds[3])/2;
+								thisItem.translate(dx, dy);
+							}
+
 							var bounds = [
 								Math.round(thisItem.visibleBounds[0] - abL), // left
 								Math.round(-thisItem.visibleBounds[1] - abT), // top
@@ -624,6 +638,7 @@
 								w = bounds[2];
 
 							if (thisItem.kind == "TextType.POINTTEXT") {
+								w *= 1.02;
 
 								if (sampleChar.justification == "Justification.RIGHT") {
 									l -= w;
@@ -631,15 +646,13 @@
 									l -= (w / 2);
 									keyframe.marginLeft = (-w / 2) + "px";
 								}
-
-								w *= 2;
 							}
 
 							keyframe.opacity = thisItem.opacity / 100;
 							keyframe.top = (t - parentT) + "px";
 							keyframe.left = (l - parentL) + "px";
 							keyframe.width = w + "px";
-
+							keyframe.height = bounds[3] + "px";
 
 						} else if (thisNode.type == "RectShapeItem" || thisNode.type == "CircleShapeItem") {
 							var style = me.styles.getShapeStyle(thisItem);
@@ -721,6 +734,8 @@
 							keyframe.width = bounds[2] + "px";
 							keyframe.height = bounds[3] + "px";
 						}
+
+						if(thisItem != thisNode.instance) thisItem.remove();
 					};
 
 					me.artboards[abNumber] = {
@@ -784,6 +799,7 @@
 					dup.locked = false;
 					dup.hidden = false;
 					dup.opacity = 100;
+					if(node.rotation) dup.rotate(-node.rotation);
 
 					_.exportToImage(targetPath, docSettings);
 
@@ -1004,6 +1020,8 @@
 				var node = new TreeNode();
 				var children = [];
 				var name;
+				var rotation = (obj.tags && obj.tags.length > 0 &&
+						obj.tags[0].name == "BBAccumRotation")? obj.tags[0].value / Math.PI*180 : 0;
 
 				node.instance = obj;
 				node.type = (obj.typename == "PlacedItem" && obj.file && obj.file.name.match(/\.(ai|pdf)$/)) ? "EmbeddedProto" : obj.typename;
@@ -1057,7 +1075,7 @@
 
 					if (name.length == 0) {
 						name = "Unnamed-" + z_index;
-					}
+					}					
 				}
 				node.path = (path && path.length > 0 ? (path + "_") : "") + name;
 
@@ -1077,18 +1095,26 @@
 					node.shortPath = debugMode ? node.path : _.uniqueId();
 				}
 
-				// special treatment				
-				if (node.type == "PathItem") {
-					var path_shape = classifyShape(obj);
-					if (itemHash[node.path].shape != null) {
-						if (itemHash[node.path].shape != path_shape) {
-							itemHash[node.path].shape = SHAPE.NONE;
+				// special treatment	
+				// Supporting: PathItem, PlacedItem, RasterItem, TextFrameItem, CompoundPathItem, SymbolItem
+				switch(node.type) {
+					case "PathItem":
+						var path_shape = classifyShape(obj);
+						if (itemHash[node.path].shape != null) {
+							if (itemHash[node.path].shape != path_shape) {
+								itemHash[node.path].shape = SHAPE.NONE;
+							}
+						} else {
+							itemHash[node.path].shape = path_shape;
 						}
-					} else {
-						itemHash[node.path].shape = path_shape;
-					}
-				} else {
-					// Supporting: PathItem, PlacedItem, RasterItem, TextFrameItem, CompoundPathItem, SymbolItem
+						break;
+
+					case "PlacedItem":
+					case "RasterItem":
+					case "SymbolItem":
+					case "TextFrame":
+						node.rotation = rotation;
+						break;
 				}
 
 				// parse through child items
