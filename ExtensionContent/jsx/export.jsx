@@ -495,6 +495,7 @@
 				}
 
 				this.states = this.states.unique();
+				var tempLayer = sourceDoc.layers.add();				
 
 				for (var abNumber = 0; abNumber < doc.artboards.length; abNumber++) {
 
@@ -554,12 +555,12 @@
 						if (thisItem.visibleBounds) {
 							
 							if(thisNode.rotation != null) {
-								keyframe.transform = "rotate(" + (-thisNode.rotation) +"deg)";
+								keyframe.transform = "rotate(" + Math.round(-thisNode.rotation) +"deg)";
 							}
 							if(thisNode.rotation) {
 								var dx = (thisItem.visibleBounds[0] + thisItem.visibleBounds[2])/2,
 									dy = (thisItem.visibleBounds[1] + thisItem.visibleBounds[3])/2;
-								thisItem = thisItem.duplicate(thisItem.layer, ElementPlacement.INSIDE);
+								thisItem = thisItem.duplicate(tempLayer, ElementPlacement.INSIDE);
 								thisItem.rotate(-thisNode.rotation);
 								dx -= (thisItem.visibleBounds[0] + thisItem.visibleBounds[2])/2,
 								dy -= (thisItem.visibleBounds[1] + thisItem.visibleBounds[3])/2;
@@ -638,14 +639,15 @@
 								w = bounds[2];
 
 							if (thisItem.kind == "TextType.POINTTEXT") {
-								w *= 1.02;
+								var offset = Math.ceil(w / 50);
 
 								if (sampleChar.justification == "Justification.RIGHT") {
-									l -= w;
+									l -= offset;
 								} else if (sampleChar.justification == "Justification.CENTER") {
-									l -= (w / 2);
-									keyframe.marginLeft = (-w / 2) + "px";
+									l -= (offset / 2);
+									keyframe.marginLeft = (-offset / 2) + "px";
 								}
+								w += offset;
 							}
 
 							keyframe.opacity = thisItem.opacity / 100;
@@ -746,6 +748,8 @@
 					artboardCount++;
 
 				}; // end artboard loop
+
+				tempLayer.remove();
 
 				// collect all keyframes
 				for (var i in itemHash) {
@@ -1113,7 +1117,7 @@
 					case "RasterItem":
 					case "SymbolItem":
 					case "TextFrame":
-						node.rotation = rotation;
+						node.rotation = (rotation + 360) %360;
 						break;
 				}
 
