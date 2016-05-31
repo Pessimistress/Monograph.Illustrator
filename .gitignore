@@ -1,8 +1,7 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
+.DS_Store
 /ZXPSignCmd.exe
-/cert.p12
-/pack.ps1
+/ZXPSignCmd
+/*.p12
+/*.ps1
+/*.sh
 /Samples/*/*

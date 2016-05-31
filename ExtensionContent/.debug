@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionList>
-    <Extension Id="com.xbox.monograph.extension">
+    <Extension Id="Microsoft.Design.Monograph.extension">
         <HostList>
             <Host Name="ILST" Port="16807"/>
         </HostList>

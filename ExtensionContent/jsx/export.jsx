@@ -9,7 +9,7 @@
 		// ===================
 
 		var versionNumber = $._ext_Monograph.version;
-		var debugMode = $._ext_Monograph.debugMode;	
+		var debugMode = $._ext_Monograph.debugMode;
 		var licenseInfo = "Monograph " + versionNumber + " (MIT License) Microsoft 2016";
 		var devServer = "http://localhost/Monograph/core/";
 
@@ -495,7 +495,7 @@
 				}
 
 				this.states = this.states.unique();
-				var tempLayer = sourceDoc.layers.add();				
+				var tempLayer = sourceDoc.layers.add();
 
 				for (var abNumber = 0; abNumber < doc.artboards.length; abNumber++) {
 
@@ -553,7 +553,7 @@
 						thisNode.keyframes[key] = keyframe;
 
 						if (thisItem.visibleBounds) {
-							
+
 							if(thisNode.rotation != null) {
 								keyframe.transform = "rotate(" + Math.round(-thisNode.rotation) +"deg)";
 							}
@@ -614,10 +614,13 @@
 						} else if (thisNode.type == "TextFrame") {
 
 							keyframe._content = [];
-							for (var k = 0; k < thisItem.paragraphs.length; k++) {
-								var paragraph = keyframe._content[k] = {};
+ 							var characterCount = 0;
 
-								if (thisItem.paragraphs[k].characters.length != 0) {
+							for (var k = 0; k < thisItem.paragraphs.length && characterCount < thisItem.characters.length; k++) {
+								var paragraph = keyframe._content[k] = {};
+								var paragraphLength = thisItem.paragraphs[k].characters.length;
+
+								if (paragraphLength != 0) {
 									var style = me.styles.getTextStyle(thisItem, k);
 									paragraph._base = style.name;
 
@@ -631,6 +634,7 @@
 								} else {
 									paragraph.text = "&nbsp;";
 								};
+								characterCount += paragraphLength + 1;
 							};
 
 							var sampleChar = thisItem.characters[0];
@@ -760,7 +764,7 @@
 
 			}
 
-			this.toHTML = function() {				
+			this.toHTML = function() {
 				var domRoot = makeDOM(null, docRoot);
 				var emptyNodes = domRoot.descendants();
 				for (var i = 0; i < emptyNodes.length(); i++) {
@@ -777,7 +781,7 @@
 
 				// hide all the top layers
 				for(var i = 0; i < docRoot.children.length; i++) {
-					var node = docRoot.children[i];					
+					var node = docRoot.children[i];
 					node.instance.locked = false;
 					isHidden(node.instance, true);
 				}
@@ -814,7 +818,7 @@
 
 				// restore all the top layers
 				for(var i = 0; i < docRoot.children.length; i++) {
-					var node = docRoot.children[i];					
+					var node = docRoot.children[i];
 					if(!node.hidden) isHidden(node.instance, false);
 					if(node.locked) node.instance.locked = true;
 				}
@@ -1079,7 +1083,7 @@
 
 					if (name.length == 0) {
 						name = "Unnamed-" + z_index;
-					}					
+					}
 				}
 				node.path = (path && path.length > 0 ? (path + "_") : "") + name;
 
@@ -1099,7 +1103,7 @@
 					node.shortPath = debugMode ? node.path : _.uniqueId();
 				}
 
-				// special treatment	
+				// special treatment
 				// Supporting: PathItem, PlacedItem, RasterItem, TextFrameItem, CompoundPathItem, SymbolItem
 				switch(node.type) {
 					case "PathItem":
@@ -1211,7 +1215,7 @@
 					message.error("Error writing data.js: " + fResult);
 				}
 
-				// output html file 
+				// output html file
 
 				var templateFolder = $.fileName.replace(/[\w]+.jsx$/, "template/");
 
@@ -1224,7 +1228,7 @@
 
 				var extensionScripts = "";
 				var script_names = docSettings.custom_script.split(/[,;]\s*/);
-				var filesToCopy = { 
+				var filesToCopy = {
 					"data.js": null,
 				};
 				filesToCopy["monograph-" + versionNumber + ".css"] = templateFolder + "monograph-" + versionNumber + ".css";
@@ -1252,7 +1256,7 @@
 								message.error("Error copying " + i + ": " + fResult);
 							}
 						}
-					}					
+					}
 				}
 
 				var htmlText = _.readFromFile(templateFolder + "index.html");
@@ -1303,7 +1307,7 @@
 
 				doc.activate();
 
-				return (destFolder + "index.html");
+				return File.fs == "Macintosh"? destFolder : (destFolder + "index.html");
 			} // end exportDocument
 
 		// ===================
